@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1141RWD Repositories</title>
+    <meta name="description" content="A curated list of repositories from the 1141RWD organization.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.05);
+            --card-hover-bg: rgba(255, 255, 255, 0.07);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-color: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.4);
+            --font-family: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-family);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(244, 63, 94, 0.05), transparent 25%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+
+        header {
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            width: 100%;
+        }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .grid.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: var(--card-hover-bg);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .repo-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .repo-stats {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .language-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--card-border);
+            margin-top: 2rem;
+        }
+
+        /* Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>1141RWD</h1>
+        <p class="subtitle">Open Source Repositories</p>
+    </header>
+
+    <div class="container">
+        <div id="loader" class="loader">Loading repositories...</div>
+        <div id="grid" class="grid">
+            <!-- Repositories will be injected here -->
+        </div>
+    </div>
+
+    <footer>
+        &copy; <span id="year"></span> 1141RWD. All rights reserved.
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const ORG_NAME = '1141RWD';
+        const API_URL = `https://api.github.com/orgs/${ORG_NAME}/repos?per_page=100`;
+
+        // SVGs for icons
+        const starIcon = `<svg class="icon" viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"></path></svg>`;
+        const forkIcon = `<svg class="icon" viewBox="0 0 16 16"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path></svg>`;
+
+        async function fetchRepos() {
+            try {
+                // Try fetching as Org first
+                let response = await fetch(API_URL);
+                if (!response.ok) {
+                    // Fallback to user if org not found or other issue (sometimes helpful for personal accounts used as orgs)
+                     response = await fetch(`https://api.github.com/users/${ORG_NAME}/repos?per_page=100`);
+                }
+                
+                if (!response.ok) throw new Error('Failed to fetch repositories');
+                
+                let repos = await response.json();
+                
+                // Pagination check (simple recursive fetch if needed, but per_page=100 is usually enough for display purposes)
+                // For simplicity in this single file demo, we assume < 100 for now or just display top 100.
+                
+                renderRepos(repos);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').innerHTML = `<span style="color: #ef4444">Error loading repositories. Please try again later.</span>`;
+            }
+        }
+
+        function getSortCategory(char) {
+            if (/[0-9]/.test(char)) return 0;
+            if (/[A-Z]/.test(char)) return 1;
+            if (/[a-z]/.test(char)) return 2;
+            return 3;
+        }
+
+        function sortRepos(repos) {
+            return repos.sort((a, b) => {
+                const nameA = a.name;
+                const nameB = b.name;
+                
+                const charA = nameA.charAt(0);
+                const charB = nameB.charAt(0);
+                
+                const catA = getSortCategory(charA);
+                const catB = getSortCategory(charB);
+
+                if (catA !== catB) {
+                    return catA - catB;
+                }
+
+                // If same category, sort alphanumerically
+                return nameA.localeCompare(nameB);
+            });
+        }
+
+        function renderRepos(repos) {
+            const sortedRepos = sortRepos(repos);
+            const grid = document.getElementById('grid');
+            const loader = document.getElementById('loader');
+
+            loader.style.display = 'none';
+
+            if (sortedRepos.length === 0) {
+                grid.innerHTML = '<p class="subtitle">No repositories found.</p>';
+                return;
+            }
+
+            grid.innerHTML = sortedRepos.map(repo => {
+                return `
+                    <a href="${repo.html_url}" target="_blank" class="card">
+                        <div class="card-header">
+                            <span class="repo-name">${repo.name}</span>
+                        </div>
+                        <p class="description">${repo.description || 'No description available.'}</p>
+                        <div class="repo-stats">
+                            ${repo.language ? `<div class="stat-item"><span class="language-dot" style="background-color: #6366f1"></span> ${repo.language}</div>` : ''}
+                            <div class="stat-item">${starIcon} ${repo.stargazers_count}</div>
+                            <div class="stat-item">${forkIcon} ${repo.forks_count}</div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
+            // Trigger animation
+            requestAnimationFrame(() => {
+                grid.classList.add('loaded');
+            });
+        }
+
+        fetchRepos();
+    </script>
+</body>
+</html>
