@@ -52,16 +52,18 @@ function renderLastUpdated(isoString) {
     if (!statusEl) {
         statusEl = document.createElement('div');
         statusEl.id = 'last-updated';
-        statusEl.style.cssText = 'position: absolute; top: 1rem; right: 1rem; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.7;';
-        document.querySelector('header').appendChild(statusEl); // Append to header (conceptually container, but absolute positioning works better if container is relative)
+        statusEl.style.cssText = 'position: absolute; top: 1rem; right: 2rem; color: var(--text-secondary); font-size: 0.8rem; opacity: 0.7; z-index: 10;';
         
-        // Ensure container is relative so absolute positioning works within it
-        // Or cleaner: append to main container before header
+        // Append to container, but ensure relative positioning
         const container = document.querySelector('.container');
-        if (getComputedStyle(container).position === 'static') {
-             container.style.position = 'relative';
+        if (container) {
+            if (getComputedStyle(container).position === 'static') {
+                container.style.position = 'relative';
+            }
+            container.insertBefore(statusEl, container.firstChild);
+        } else {
+            console.warn("Container not found for status element");
         }
-        container.insertBefore(statusEl, container.firstChild);
     }
     statusEl.innerHTML = `資料更新於: ${dateStr}`;
 }
