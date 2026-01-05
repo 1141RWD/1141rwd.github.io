@@ -17,7 +17,7 @@ const repoIcon = `<svg class="icon" viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 
 async function init() {
     try {
         // Fetch static data from user's server
-        const response = await fetch('http://udp.cfh.tw:14105');
+        const response = await fetch('https://1141rwd.sange.ge');
         
         if (!response.ok) {
             throw new Error('Static data not found.');
