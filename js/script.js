@@ -175,7 +175,6 @@ function renderUI() {
                 <div class="maintainer-info">
                     <img src="${repo.maintainer.avatar}" alt="${repo.maintainer.name}" class="maintainer-avatar">
                     <span class="maintainer-name">${repo.maintainer.name}</span>
-                    <span>(維護者)</span>
                 </div>
             `;
         } else {
