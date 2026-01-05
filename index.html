@@ -1,19 +1,17 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1141RWD 專案列表</title>
-    <meta name="description" content="1141RWD 組織的精選專案列表。">
+    <title>1141RWD | GitHub 專案展示</title>
+    <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
     <div class="container">
         <!-- Profile Header -->
         <div id="profile-header" class="profile-header">
@@ -44,19 +42,52 @@
                     <option value="repo">開啟: Repository (原始碼)</option>
                 </select>
             </div>
+
+            <!-- Settings Toggles -->
+            <div class="settings-group">
+                <label class="toggle-switch" title="切換深色/淺色模式">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider">
+                        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Featured Section -->
+        <div id="featured-container" style="display:none; margin-bottom: 2rem;">
+            <h3 class="section-title">✨ 精選專案</h3>
+            <div id="featured-grid" class="grid"></div>
+            <hr class="divider">
         </div>
 
         <!-- Active Filters Display -->
         <div id="active-filters" class="active-filters"></div>
 
         <div id="loader" class="loader">載入專案資料中...</div>
+
         <div id="grid" class="grid">
             <!-- Repositories will be injected here -->
         </div>
     </div>
 
     <footer>
-        &copy; <span id="year"></span> 1141RWD. All rights reserved.
+        <p>&copy; <span id="footer-year">2026</span> 1141RWD Organization. All rights reserved.</p>
     </footer>
 
     <script src="js/script.js"></script>

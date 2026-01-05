@@ -31,6 +31,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 /* Scrollbar */
@@ -73,10 +74,12 @@ body {
     border: 1px solid var(--card-border);
     animation: fadeInDown 0.8s ease-out;
     backdrop-filter: blur(10px);
+    flex-direction: column; /* Allow chart to stack */
 }
 
 .profile-info {
     flex: 1;
+    width: 100%;
 }
 
 .profile-name {
@@ -84,6 +87,13 @@ body {
     font-weight: 700;
     margin-bottom: 0.5rem;
     background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Light Mode Text Override for Gradient */
+[data-theme="light"] .profile-name {
+    background: linear-gradient(135deg, #4f46e5 0%, #000 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -186,7 +196,7 @@ select:focus {
 }
 
 option {
-    background: #1a1b26;
+    background: var(--bg-color); /* Fix for light mode */
     color: var(--text-primary);
 }
 
@@ -376,7 +386,6 @@ footer {
 
 @media (max-width: 768px) {
     .profile-header {
-        flex-direction: column;
         text-align: center;
         gap: 1rem;
         padding: 1.5rem;
@@ -427,4 +436,206 @@ footer {
 .maintainer-name {
     font-weight: 500;
     color: var(--text-primary);
+}
+
+/* --- Phase 2: Advanced Features --- */
+
+/* Light Mode Variables */
+[data-theme="light"] {
+    --bg-color: #f3f4f6;
+    --card-bg: #ffffff;
+    --card-border: #e5e7eb;
+    --card-hover-bg: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --accent-color: #4f46e5;
+    --accent-glow: rgba(79, 70, 229, 0.2);
+    --input-bg: rgba(0, 0, 0, 0.05); /* Darken input bg for visibility on light mode */
+}
+
+/* Featured Section */
+.featured-grid .card {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: linear-gradient(145deg, var(--card-bg), rgba(255, 215, 0, 0.05));
+    position: relative;
+    overflow: hidden;
+}
+
+.featured-grid .card::before {
+    content: "★ Featured";
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ffd700;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.featured-grid .card:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+}
+
+.section-title {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: var(--card-border);
+    margin: 2rem 0;
+}
+
+/* --- Settings Toggles --- */
+.settings-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* --- Theme Switch Redesign --- */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    transition: .4s;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 3px;
+    background-color: var(--text-primary);
+    transition: .4s;
+    border-radius: 50%;
+    z-index: 2;
+}
+
+/* Icons inside slider */
+.sun-icon, .moon-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    transition: opacity 0.3s;
+}
+
+.sun-icon {
+    right: 8px;
+    color: #fbbf24; /* Amber for sun */
+    opacity: 1;
+}
+
+.moon-icon {
+    left: 8px;
+    color: #a5b4fc; /* Indigo for moon */
+    opacity: 0;
+}
+
+input:checked + .slider {
+    background-color: var(--card-bg);
+    border-color: var(--accent-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(30px);
+    background-color: #fff;
+}
+
+input:checked + .slider .sun-icon {
+    opacity: 0;
+}
+
+input:checked + .slider .moon-icon {
+    opacity: 1;
+}
+
+
+/* --- Repo Language Bar --- */
+.repo-lang-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.05); /* very subtle track */
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.repo-lang-segment {
+    height: 100%;
+}
+
+/* Language Chart (Profile) - Keep existing but ensure consistent look */
+.lang-chart-container {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.lang-bar {
+    height: 10px;
+    width: 100%;
+    background: var(--card-border);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+}
+
+.lang-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
 }

@@ -1,7 +1,7 @@
-document.getElementById("year").textContent = new Date().getFullYear();
 
 // --- Globals ---
 let allRepos = [];
+let pinnedNames = [];
 let currentFilter = {
     search: '',
     tag: null
@@ -16,16 +16,27 @@ const repoIcon = `<svg class="icon" viewBox="0 0 16 16"><path d="M2 2.5A2.5 2.5 
 // --- Initialization ---
 async function init() {
     try {
-        // Fetch static data from user's server
-        const response = await fetch('https://1141rwd.sange.ge');
-        
-        if (!response.ok) {
-            throw new Error('Static data not found.');
-        }
+        // Load Settings
+        loadSettings();
 
+        // 1. Fetch Static Data
+        // Cloudflare HTTPS URL
+        const response = await fetch('https://1141rwd.sange.ge');
+        if (!response.ok) throw new Error('Static data not found.');
+        
         const data = await response.json();
         allRepos = data.repos || [];
         
+        // 2. Fetch Pinned Config
+        try {
+            const pinRes = await fetch('./pinnings.json');
+            if (pinRes.ok) {
+                pinnedNames = await pinRes.json();
+            }
+        } catch (e) {
+            console.warn("Could not load pinnings.json");
+        }
+
         // Render
         renderProfile(data.profile, allRepos);
         renderLastUpdated(data.generated_at);
@@ -35,7 +46,7 @@ async function init() {
         console.error(error);
         document.getElementById('loader').innerHTML = `
             <div style="text-align:center">
-                <p style="color: #ef4444; margin-bottom: 0.5rem">無法載入資料 (data.json 尚未產生)</p>
+                <p style="color: #ef4444; margin-bottom: 0.5rem">無法載入資料</p>
                 <p style="color: #666; font-size: 0.9em">請嘗試重新整理，或等待排程更新。</p>
             </div>
         `;
@@ -45,7 +56,9 @@ async function init() {
 function renderLastUpdated(isoString) {
     if (!isoString) return;
     const date = new Date(isoString);
-    const dateStr = `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
     
     // Create or update status element
     let statusEl = document.getElementById('last-updated');
@@ -61,11 +74,11 @@ function renderLastUpdated(isoString) {
                 container.style.position = 'relative';
             }
             container.insertBefore(statusEl, container.firstChild);
-        } else {
-            console.warn("Container not found for status element");
         }
     }
-    statusEl.innerHTML = `資料更新於: ${dateStr}`;
+    
+    const timeText = diffMins < 1 ? "剛剛" : `${diffMins} 分鐘前`;
+    statusEl.innerHTML = `資料更新於: ${timeText} (每 5 分鐘自動更新)`;
 }
 
 function renderProfile(profile, repos) {
@@ -90,6 +103,22 @@ function renderProfile(profile, repos) {
             </div>
         </div>
     `;
+}
+
+function getLangColor(lang) {
+    const colors = {
+        "JavaScript": "#f1e05a",
+        "Python": "#3572A5",
+        "HTML": "#e34c26",
+        "CSS": "#563d7c",
+        "Vue": "#41b883",
+        "TypeScript": "#2b7489",
+        "Java": "#b07219",
+        "Shell": "#89e051",
+        "C++": "#f34b7d",
+        "PHP": "#4F5D95"
+    };
+    return colors[lang] || "#ccc";
 }
 
 // --- Filtering & Sorting ---
@@ -141,83 +170,139 @@ function customNameSort(nameA, nameB) {
 
 function renderUI() {
     const filtered = filterRepos(allRepos);
-    const sorted = sortRepos(filtered);
+    const sorted = sortRepos(filtered); // Sort everything first based on criteria
+
+    // Separate Pinned vs Others
+    const pinned = sorted.filter(r => pinnedNames.includes(r.name));
+    const others = sorted.filter(r => !pinnedNames.includes(r.name));
+
     const grid = document.getElementById("grid");
+    const featuredGrid = document.getElementById("featured-grid");
+    const featuredContainer = document.getElementById("featured-container");
     const loader = document.getElementById("loader");
-    const linkTarget = document.getElementById("link-select").value;
-     
+    
     loader.style.display = "none";
     updateActiveFilters();
 
-    if (sorted.length === 0) {
+    // 1. Render Featured
+    if (featuredGrid && featuredContainer) {
+        if (pinned.length > 0) {
+            featuredContainer.style.display = "block";
+            featuredGrid.innerHTML = pinned.map(repo => createCardHtml(repo)).join("");
+        } else {
+            featuredContainer.style.display = "none";
+        }
+    }
+
+    // 2. Render Normal Grid
+    if (others.length === 0 && pinned.length === 0) {
         grid.innerHTML = '<p class="subtitle" style="grid-column: 1/-1; text-align: center;">找不到符合條件的專案。</p>';
         return;
     }
 
-    grid.innerHTML = sorted.map((repo) => {
-        let href = linkTarget === "repo" ? repo.html_url : `https://1141rwd.github.io/${repo.name}`;
-        const desc = repo.description || "暫無說明";
-        
-        let tagsHtml = "";
-        if (repo.language) {
-            tagsHtml += `<span class="repo-tag clickable" onclick="setFilterTag(event, '${repo.language}')">${repo.language}</span>`;
-        }
-        if (repo.topics && repo.topics.length > 0) {
-            tagsHtml += repo.topics.map((t) =>
-                `<span class="repo-tag clickable" onclick="setFilterTag(event, '${t}')">${t}</span>`
-            ).join("");
-        }
+    grid.innerHTML = others.map(repo => createCardHtml(repo)).join("");
 
-        // Maintainer Info (from Static JSON)
-        let maintainerHtml = '';
-        if (repo.maintainer) {
-            maintainerHtml = `
-                <div class="maintainer-info">
-                    <img src="${repo.maintainer.avatar}" alt="${repo.maintainer.name}" class="maintainer-avatar">
-                    <span class="maintainer-name">${repo.maintainer.name}</span>
-                </div>
-            `;
-        } else {
-             // Fallback or empty if no Maintainer info fetched
-             maintainerHtml = `<div class="maintainer-info"><span style="opacity:0.3; font-size: 0.8em">無資料</span></div>`;
-        }
-
-        return `
-            <a href="${href}" target="_blank" class="card">
-                <div class="card-header">
-                    <span class="repo-name">${repo.name}</span>
-                </div>
-                <p class="description">${desc}</p>
-                <div class="tags-container">${tagsHtml}</div>
-                
-                ${maintainerHtml}
-
-                <div class="repo-stats">
-                    <div class="stat-item" title="最後更新時間">${updateIcon} ${formatDate(repo.pushed_at)}</div>
-                    <div class="stat-item" title="檔案大小">${formatSize(repo.size)}</div>
-                    <div class="stat-item" style="margin-left: auto;">${starIcon} ${repo.stargazers_count}</div>
-                </div>
-            </a>
-        `;
-    }).join("");
-
-    requestAnimationFrame(() => grid.classList.add("loaded"));
+    requestAnimationFrame(() => {
+        grid.classList.add("loaded");
+        if(featuredGrid) featuredGrid.classList.add("loaded");
+    });
 }
 
-function updateActiveFilters() {
-    const container = document.getElementById("active-filters");
-    if (currentFilter.tag) {
-        container.innerHTML = `
-            <div class="filter-tag clear-btn" onclick="clearFilterTag()">
-                <span>✕ 清除篩選: ${currentFilter.tag}</span>
+function createCardHtml(repo) {
+    const linkTarget = document.getElementById("link-select").value;
+    let href = linkTarget === "repo" ? repo.html_url : `https://1141rwd.github.io/${repo.name}`;
+    const desc = repo.description || "暫無說明";
+    
+    // Top Tags
+    let tagsHtml = "";
+    // Only show tags if we don't have detailed language breakdown? 
+    // Or show both? Let's show Topics as tags, and Language as Bar.
+    if (repo.topics && repo.topics.length > 0) {
+        tagsHtml += repo.topics.map((t) =>
+            `<span class="repo-tag clickable" onclick="setFilterTag(event, '${t}')">${t}</span>`
+        ).join("");
+    }
+
+    // Maintainer Info
+    let maintainerHtml = '';
+    if (repo.maintainer) {
+        maintainerHtml = `
+            <div class="maintainer-info">
+                <img src="${repo.maintainer.avatar}" alt="${repo.maintainer.name}" class="maintainer-avatar">
+                <span class="maintainer-name">${repo.maintainer.name}</span>
             </div>
         `;
     } else {
-        container.innerHTML = "";
+         maintainerHtml = `<div class="maintainer-info"><span style="opacity:0.3; font-size: 0.8em">無資料</span></div>`;
     }
-}
 
-// --- Helpers ---
+    // Language Bar Generation
+    let langBarHtml = '';
+    if (repo.languages && Object.keys(repo.languages).length > 0) {
+        let totalBytes = 0;
+        const stats = [];
+        for (const [lang, bytes] of Object.entries(repo.languages)) {
+            totalBytes += bytes;
+            stats.push({ lang, bytes });
+        }
+        stats.sort((a, b) => b.bytes - a.bytes); // Sort descending
+
+        const segments = stats.map(stat => {
+            const percent = (stat.bytes / totalBytes) * 100;
+            if (percent < 1) return ''; // Skip < 1%
+            const color = getLangColor(stat.lang);
+            return `<div class="repo-lang-segment" style="width: ${percent}%; background-color: ${color}" title="${stat.lang} ${Math.round(percent)}%"></div>`;
+        }).join('');
+
+        const legend = stats.slice(0, 3).map(stat => { // Top 3 text legend
+             const percent = Math.round((stat.bytes / totalBytes) * 100);
+             if (percent === 0) return '';
+             const color = getLangColor(stat.lang);
+             return `<span style="font-size: 0.75rem; color: var(--text-secondary); display: inline-flex; items-align: center; gap: 4px; margin-right: 8px;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color}; display: inline-block; margin-top:5px;"></span>
+                        ${stat.lang} ${percent}%
+                     </span>`;
+        }).join('');
+
+        langBarHtml = `
+            <div style="margin-top: auto; margin-bottom: 0.5rem;">
+                <div style="display: flex; flex-wrap: wrap;">${legend}</div>
+                <div class="repo-lang-bar">${segments}</div>
+            </div>
+        `;
+    } else if (repo.language) {
+        // Fallback for transition period or empty stats
+        const color = getLangColor(repo.language);
+        langBarHtml = `
+            <div class="repo-lang-bar" style="margin-top: auto; margin-bottom: 0.5rem;">
+                <div class="repo-lang-segment" style="width: 100%; background-color: ${color}" title="${repo.language}"></div>
+            </div>
+             <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
+                ${repo.language}
+            </div>
+        `;
+    }
+
+    return `
+        <a href="${href}" target="_blank" class="card">
+            <div class="card-header">
+                <span class="repo-name">${repo.name}</span>
+            </div>
+            <p class="description">${desc}</p>
+            <div class="tags-container">${tagsHtml}</div>
+            
+            ${langBarHtml}
+            ${maintainerHtml}
+
+            <div class="repo-stats">
+                <div class="stat-item" title="最後更新時間">${updateIcon} ${formatDate(repo.pushed_at)}</div>
+                <div class="stat-item" title="檔案大小">${formatSize(repo.size)}</div>
+                <div class="stat-item" style="margin-left: auto;">${starIcon} ${repo.stargazers_count}</div>
+            </div>
+        </a>
+    `;
+}
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
@@ -241,7 +326,48 @@ function formatSize(kb) {
     return `${(kb / 1024).toFixed(1)} MB`;
 }
 
-// --- Interactions ---
+// --- Settings & Toggles ---
+
+function loadSettings() {
+    // Theme (Default Dark)
+    const isLight = localStorage.getItem('theme') === 'light';
+    if (isLight) {
+        document.body.setAttribute('data-theme', 'light');
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) themeToggle.checked = true;
+    }
+}
+
+// Event Listeners (Added safely)
+const themeToggle = document.getElementById('theme-toggle');
+if (themeToggle) {
+    themeToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            document.body.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+}
+
+function updateActiveFilters() {
+    const container = document.getElementById("active-filters");
+    if (!container) return;
+    
+    if (currentFilter.tag) {
+        container.innerHTML = `
+            <div class="filter-tag clear-btn" onclick="clearFilterTag()">
+                <span>✕ 清除篩選: ${currentFilter.tag}</span>
+            </div>
+        `;
+    } else {
+        container.innerHTML = "";
+    }
+}
+
+// --- Helpers ---
 
 window.setFilterTag = (e, tag) => {
     e.preventDefault();

@@ -41,6 +41,9 @@ async function fetchData() {
             try {
                 // Fetch last commit
                 const commits = await fetchGithub(`${repo.url}/commits?per_page=1`);
+                // Fetch language breakdown
+                const languages = await fetchGithub(repo.languages_url);
+
                 let maintainer = null;
 
                 if (Array.isArray(commits) && commits.length > 0) {
@@ -60,6 +63,7 @@ async function fetchData() {
                     html_url: repo.html_url,
                     description: repo.description,
                     language: repo.language,
+                    languages: languages, // Detailed stats
                     topics: repo.topics,
                     pushed_at: repo.pushed_at,
                     size: repo.size,
