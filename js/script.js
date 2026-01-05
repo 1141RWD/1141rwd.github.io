@@ -72,7 +72,7 @@ function renderProfile(profile, repos) {
     const container = document.getElementById("profile-header");
     
     const totalStars = repos.reduce((acc, repo) => acc + repo.stargazers_count, 0);
-    const bio = profile.bio || "互動式網頁設計";
+    const bio = profile.bio || "互動式網頁設計 by 3B332038 呂鈞右";
     const name = profile.name || '1141RWD';
     const publicRepos = profile.public_repos || repos.length;
 
